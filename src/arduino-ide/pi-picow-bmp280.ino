@@ -35,9 +35,9 @@ void setup() {
   blinkLed(10, 50);
 
   Serial.begin(9600);
-  while (!Serial) {
-    delay(100);
-  }
+  // while (!Serial) {
+  //   delay(100);
+  // }
 
   Serial.println("Starting setup...");
   
