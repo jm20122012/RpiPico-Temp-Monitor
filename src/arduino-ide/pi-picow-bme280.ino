@@ -16,6 +16,8 @@ const unsigned long PUB_INTERVAL = 60 * 1000; // In milliseconds
 const unsigned long LED_BLINK_INTERVAL = 3 * 1000; // In milliseconds
 const unsigned long WIFI_CHECK_INTERVAL  = 10 * 1000; // In milliseconds
 const unsigned long MQTT_CHECK_INTERVAL = 10 * 1000; // In milliseconds
+const String CLIENT_ID = "bme280_sensor_garage" + String(random(0xffff), HEX);
+const char* BOARD_TYPE = "picow";
 
 // Global variables
 bool ledState = false;
@@ -29,14 +31,25 @@ WiFiClient mqttClient;
 PubSubClient client(mqttClient);
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  blinkLed(10, 50);
 
-  Serial.begin(115200);
+  Serial.begin(9600);
+  // while (!Serial) {
+  //   ; // wait for serial port to connect. Needed for native USB port only
+  // }
+
+  Serial.println("Starting setup...");
   
+  blinkLed(5, 100);
+
   bool status = bme.begin(0x76);  
   if (!status) {
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
     while (1);
   }
+
+  blinkLed(3, 100);
 
   connectWifi();
 
@@ -44,7 +57,6 @@ void setup() {
   client.setServer(MQTT_BROKER, MQTT_PORT);
   client.setBufferSize(1024);
 
-  pinMode(LED_BUILTIN, OUTPUT);
 
 }
 
@@ -102,6 +114,15 @@ void loop() {
   }
 }
 
+void blinkLed(int count, int delayMilliseconds){
+  for (int i = 0; i < count; i++){
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(delayMilliseconds);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(delayMilliseconds);
+  }
+}
+
 float celsiusToFahrenheit(float celsius) {
   return (celsius * 9.0 / 5.0) + 32.0;
 }
@@ -137,7 +158,7 @@ void mqttReconnect() {
 
   while (!client.connected()) {
     Serial.println("Attempting MQTT connection...");
-    String clientId = "bme280_sensor_garage" + String(random(0xffff), HEX);
+    String clientId = CLIENT_ID;
     if (client.connect(clientId.c_str())) {
       Serial.println("MQTT Connected");
     } else {
@@ -156,6 +177,7 @@ void mqttReconnect() {
 void publishStatus(float tempF, float tempC, float humidity, float pressure) {
   JsonDocument doc;
 
+  doc["microcontrollerType"] = BOARD_TYPE;
   doc["tempF"] = tempF;
   doc["tempC"] = tempC;
   doc["humidity"] = humidity;
