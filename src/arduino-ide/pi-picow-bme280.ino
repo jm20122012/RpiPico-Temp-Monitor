@@ -9,7 +9,7 @@
 
 const char* MQTT_BROKER = "";
 const int MQTT_PORT = 1883;
-const char* SSID = "U";
+const char* SSID = "";
 const char* PW = "";
 const char* PUB_TOPIC = "bme280_sensors/garage";
 const unsigned long PUB_INTERVAL = 60 * 1000; // In milliseconds
